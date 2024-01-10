@@ -325,7 +325,36 @@ bool removeCell   ( TSPARSEMATRIX   * m,int rowIdx,int colIdx )
 
 void freeMatrix   ( TSPARSEMATRIX   * m )
 {
+    TROWCOL *col;
+  TROWCOL *row;
+  TCELL *cell;
 
+  TROWCOL *cols = m->m_Cols;
+  TROWCOL *rows = m->m_Rows;
+
+  while(cols != nullptr){
+    col = cols;
+
+    cols = cols->m_Next;
+    //COL
+    TCELL *cell_tmp = col->m_Cells;
+    while(cell_tmp != nullptr){
+      cell = cell_tmp;
+
+      cell_tmp = cell_tmp->m_Down;
+      free(cell);
+    }
+    free(col);
+  }
+  
+
+  while(rows != nullptr){
+    row = rows;
+
+    rows = rows->m_Next;
+
+    free(row);
+  }
 }
 
 #ifndef __PROGTEST__
