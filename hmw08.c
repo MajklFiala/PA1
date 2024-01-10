@@ -189,6 +189,137 @@ void addSetCell   ( TSPARSEMATRIX   * m, int rowIdx,int  colIdx,int  data )
 
 bool removeCell   ( TSPARSEMATRIX   * m,int rowIdx,int colIdx )
 {
+      //checking if the column exist
+  TROWCOL *cols = m->m_Cols;
+
+  TROWCOL *col_prev = nullptr;
+  TROWCOL *col = nullptr; //the specific col box
+  bool is_col = false;
+  int num_col = 0;
+  
+
+  //loop through the columns
+  while(cols != nullptr){
+    if(cols->m_Idx == colIdx){
+      col = cols;
+      is_col = true;
+      break;
+    }
+    num_col++;
+    col_prev = cols;
+    cols = cols->m_Next;
+    
+  }
+
+  //checking if the row exist
+  TROWCOL *rows = m->m_Rows;
+
+  TROWCOL *row_prev = nullptr;
+  TROWCOL *row = nullptr; //the specific row box
+  bool is_row = false;
+  int num_row = 0;
+
+  //loop through row list
+  while(rows != nullptr){
+    if(rows->m_Idx == rowIdx){
+      row = rows;
+      is_row = true;
+      break;
+    }
+    num_row++;
+    row_prev = rows;
+    rows = rows->m_Next;
+  }
+
+  //checking if both col and row exist
+  if(is_row == false || is_col == false){
+    return false;
+  }
+
+  //________REMOVING CELL FROM COL_______
+  bool check_row_in_col = false;
+  TCELL *cell_prev = nullptr;
+
+  TCELL *cell = col->m_Cells;
+  int count = 1;
+
+  while(cell != nullptr){
+    if(cell->m_Row == rowIdx){
+      check_row_in_col = true;
+      if(cell_prev != nullptr){
+        cell_prev->m_Down = cell->m_Down;
+      }else{
+        col->m_Cells = nullptr;
+      }
+      //Changing the col boxes
+      if(count == 1){
+        if(cell->m_Down != nullptr){
+          col->m_Cells = cell->m_Down;
+        }else{
+          if(col_prev != nullptr){
+            col_prev->m_Next = col->m_Next;
+          }
+          if(num_col == 0){
+            m->m_Cols = col->m_Next;
+          }
+          free(col);//NEED TO FREE THE COL BOX
+        }
+      }
+      break;
+
+    }
+    count++;
+    cell_prev = cell;
+    cell = cell->m_Down;
+  }
+
+  if(check_row_in_col == false){
+    return false;
+  }
+
+  //________REMOVING CELL FROM ROW__________
+  bool check_col_in_row = false;
+  TCELL *cell_prev2 = nullptr;
+
+  TCELL *cell2 = row->m_Cells;
+  int count2 = 1;
+
+  while(cell2 != nullptr){
+    if(cell2->m_Col == colIdx){
+      check_col_in_row = true;
+      if(cell_prev2 != nullptr){
+        cell_prev2->m_Right = cell2->m_Right;
+      }else{
+        row->m_Cells = nullptr;
+      }
+      if(count2 == 1){
+        if(cell2->m_Right != nullptr){
+          row->m_Cells = cell2->m_Right;
+        }else{
+          if(row_prev != nullptr){
+            row_prev->m_Next = row->m_Next;
+          } 
+          if(num_row == 0){
+            m->m_Rows = row->m_Next;
+          }
+          free(row);//FREE THE ROW BOX
+        }
+      }
+      free(cell2);
+      break;
+
+    }
+    count2++;
+    cell_prev2 = cell2;
+    cell2 = cell2->m_Right;
+    
+  }
+
+  if(check_col_in_row == false){
+    return false;
+  }
+
+  return true;
 
 }
 
